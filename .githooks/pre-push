@@ -1,0 +1,15 @@
+#!/bin/sh
+
+echo "Running Go tests..."
+
+# Run Go tests
+go test ./...
+
+# If the tests fail, exit with a non-zero status
+if [ $? -ne 0 ]; then
+  echo "Tests failed! Aborting push."
+  exit 1
+fi
+
+echo "All tests passed. Proceeding with push."
+exit 0
