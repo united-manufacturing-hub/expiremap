@@ -16,15 +16,16 @@ package main
 import (
 	"fmt"
 	"github.com/united-manufacturing-hub/expiremap/pkg/expiremap"
+	"time"
 )
 
 func main() {
 	var exMap = expiremap.New[string, string]()
-	exMap.Set("key", "value", 10) // 10 seconds
-	val := exMap.Get("key")       // "value"
+	exMap.Set("key", "value", 10*time.Second) // 10 seconds
+	val := exMap.Get("key")                   // "value"
 	fmt.Println(val)
-	time.Seconds(11)
+	time.Sleep(11 * time.Second)
 	val = exMap.Get("key") // nil
-    fmt.Println(val)
+	fmt.Println(val)
 }
 ```
