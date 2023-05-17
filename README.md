@@ -2,6 +2,12 @@
 
 This go package provides a map with expiring key-value pairs.
 
+## Installation
+
+```bash
+go get github.com/united-manufacturing-hub/expiremap
+```
+
 ## Usage
 
 ```go
