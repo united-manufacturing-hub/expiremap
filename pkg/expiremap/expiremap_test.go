@@ -18,7 +18,7 @@ func TestSetAndGet(t *testing.T) {
 	m.Set(1, "one")
 
 	v, ok := m.Get(1)
-	if !ok || v != "one" {
+	if !ok || *v != "one" {
 		t.Fatalf("expected %v, got %v", "one", v)
 	}
 }
@@ -28,7 +28,7 @@ func TestSetExAndGet(t *testing.T) {
 	m.SetEx(1, "one", time.Second*2)
 
 	v, ok := m.Get(1)
-	if !ok || v != "one" {
+	if !ok || *v != "one" {
 		t.Fatalf("expected %v, got %v", "one", v)
 	}
 
@@ -121,7 +121,7 @@ func TestConcurrency(t *testing.T) {
 	// Check the final state of the map
 	for i := 0; i < numRoutines; i++ {
 		value, ok := m.Get(i)
-		if !ok || value != "value" {
+		if !ok || *value != "value" {
 			t.Fatalf("Expected key %v to be 'value', got %v", i, value)
 		}
 	}

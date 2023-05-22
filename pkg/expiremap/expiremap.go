@@ -53,7 +53,7 @@ func (m *ExpireMap[T, V]) SetEx(key T, value V, ttl time.Duration) {
 }
 
 // Get returns the newest value for the given key, if it exists and is not expired.
-func (m *ExpireMap[T, V]) Get(key T) (interface{}, bool) {
+func (m *ExpireMap[T, V]) Get(key T) (*V, bool) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
@@ -70,7 +70,7 @@ func (m *ExpireMap[T, V]) Get(key T) (interface{}, bool) {
 	}
 
 	if found {
-		return newest.value, true
+		return &newest.value, true
 	}
 	return nil, false
 }
