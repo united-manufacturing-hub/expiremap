@@ -76,7 +76,7 @@ func (m *ExpireMap[T, V]) Get(key T) (*V, bool) {
 }
 
 // LoadAndDelete returns the newest value for the given key, if it exists and is not expired, and deletes it.
-func (m *ExpireMap[T, V]) LoadAndDelete(key T) (interface{}, bool) {
+func (m *ExpireMap[T, V]) LoadAndDelete(key T) (*V, bool) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -86,14 +86,14 @@ func (m *ExpireMap[T, V]) LoadAndDelete(key T) (interface{}, bool) {
 	for i, v := range m.m[key] {
 		if v.expiresAt.After(time.Now()) {
 			m.m[key] = append(m.m[key][:i], m.m[key][i+1:]...)
-			return v.value, true
+			return &v.value, true
 		}
 	}
 	return nil, false
 }
 
 // Load returns the newest value for the given key, if it exists and is not expired.
-func (m *ExpireMap[T, V]) Load(key T) (interface{}, bool) {
+func (m *ExpireMap[T, V]) Load(key T) (*V, bool) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
@@ -102,7 +102,7 @@ func (m *ExpireMap[T, V]) Load(key T) (interface{}, bool) {
 	}
 	for _, v := range m.m[key] {
 		if v.expiresAt.After(time.Now()) {
-			return v.value, true
+			return &v.value, true
 		}
 	}
 	return nil, false
