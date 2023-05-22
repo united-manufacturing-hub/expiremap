@@ -64,7 +64,7 @@ func TestLoad(t *testing.T) {
 		t.Fatalf("expected %v, got %v", "one", v)
 	}
 }
-d .
+
 func TestDelete(t *testing.T) {
 	m := New[int, string]()
 	m.Set(1, "one")
