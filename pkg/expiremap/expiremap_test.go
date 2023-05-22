@@ -45,7 +45,7 @@ func TestLoadAndDelete(t *testing.T) {
 	m.Set(1, "one")
 
 	v, ok := m.LoadAndDelete(1)
-	if !ok || v != "one" {
+	if !ok || *v != "one" {
 		t.Fatalf("expected %v, got %v", "one", v)
 	}
 
@@ -60,11 +60,11 @@ func TestLoad(t *testing.T) {
 	m.Set(1, "one")
 
 	v, ok := m.Load(1)
-	if !ok || v != "one" {
+	if !ok || *v != "one" {
 		t.Fatalf("expected %v, got %v", "one", v)
 	}
 }
-
+d .
 func TestDelete(t *testing.T) {
 	m := New[int, string]()
 	m.Set(1, "one")
