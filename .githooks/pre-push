@@ -16,7 +16,9 @@ fi
 
 # Check coverage
 COVERAGE=$(go tool cover -func coverage.out | grep total: | awk '{ print $3 }' | sed 's/%//')
-if (( $(echo "$COVERAGE < 90" |bc -l) )); then
+IS_COVERAGE_ACCEPTABLE=$(awk -v coverage=$COVERAGE 'BEGIN {if (coverage >= 90.0) {print "yes"} else {print "no"}}')
+
+if [ "$IS_COVERAGE_ACCEPTABLE" == "no" ]; then
   echo "Total coverage is less than 90%. Aborting push."
   exit 1
 fi

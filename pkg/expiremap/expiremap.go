@@ -5,13 +5,11 @@ import (
 	"time"
 )
 
-// item is a value with an expiration time.
 type item[V any] struct {
 	value     V
 	expiresAt time.Time
 }
 
-// ExpireMap is a thread-safe map, that automatically deletes entries after a given time.
 type ExpireMap[T comparable, V any] struct {
 	m          map[T][]item[V]
 	lock       sync.RWMutex
@@ -19,12 +17,10 @@ type ExpireMap[T comparable, V any] struct {
 	defaultTTL time.Duration
 }
 
-// New creates a new ExpireMap with a default cull period of 1 minute and a default TTL of 1 minute.
 func New[T comparable, V any]() *ExpireMap[T, V] {
 	return NewEx[T, V](time.Minute, time.Minute)
 }
 
-// NewEx creates a new ExpireMap with the given cull period and default TTL.
 func NewEx[T comparable, V any](cullPeriod, defaultTTL time.Duration) *ExpireMap[T, V] {
 	var m = ExpireMap[T, V]{
 		m:          make(map[T][]item[V]),
@@ -36,89 +32,50 @@ func NewEx[T comparable, V any](cullPeriod, defaultTTL time.Duration) *ExpireMap
 	return &m
 }
 
-// Set sets a value with the default TTL.
 func (m *ExpireMap[T, V]) Set(key T, value V) {
 	m.SetEx(key, value, m.defaultTTL)
 }
 
-// SetEx sets a value with the given TTL.
 func (m *ExpireMap[T, V]) SetEx(key T, value V, ttl time.Duration) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
-	if _, ok := m.m[key]; !ok {
-		m.m[key] = []item[V]{}
-	}
 	m.m[key] = append(m.m[key], item[V]{value: value, expiresAt: time.Now().Add(ttl)})
 }
 
-// Get returns the newest value for the given key, if it exists and is not expired.
 func (m *ExpireMap[T, V]) Get(key T) (*V, bool) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
-	var newest item[V]
-	found := false
-
-	if items, ok := m.m[key]; ok {
-		for _, i := range items {
-			if i.expiresAt.After(time.Now()) && (!found || i.expiresAt.After(newest.expiresAt)) {
-				newest = i
-				found = true
-			}
-		}
-	}
-
-	if found {
-		return &newest.value, true
-	}
-	return nil, false
+	return m.getNewestValidItem(key)
 }
 
-// LoadAndDelete returns the newest value for the given key, if it exists and is not expired, and deletes it.
 func (m *ExpireMap[T, V]) LoadAndDelete(key T) (*V, bool) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
-	if _, ok := m.m[key]; !ok {
-		return nil, false
+	v, ok := m.getNewestValidItem(key)
+	if ok {
+		m.deleteNewestValidItem(key)
 	}
-	for i, v := range m.m[key] {
-		if v.expiresAt.After(time.Now()) {
-			m.m[key] = append(m.m[key][:i], m.m[key][i+1:]...)
-			return &v.value, true
-		}
-	}
-	return nil, false
+	return v, ok
 }
 
-// Load returns the newest value for the given key, if it exists and is not expired.
 func (m *ExpireMap[T, V]) Load(key T) (*V, bool) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
-	if _, ok := m.m[key]; !ok {
-		return nil, false
-	}
-	for _, v := range m.m[key] {
-		if v.expiresAt.After(time.Now()) {
-			return &v.value, true
-		}
-	}
-	return nil, false
+	return m.getNewestValidItem(key)
 }
 
-// Delete deletes the given key.
 func (m *ExpireMap[T, V]) Delete(key T) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	delete(m.m, key)
 }
 
-// cull periodically removes expired items.
 func (m *ExpireMap[T, V]) cull() {
 	for {
-		// Periodically cull expired items
 		time.Sleep(m.cullPeriod)
 		now := time.Now()
 		m.lock.Lock()
@@ -137,5 +94,41 @@ func (m *ExpireMap[T, V]) cull() {
 			}
 		}
 		m.lock.Unlock()
+	}
+}
+
+func (m *ExpireMap[T, V]) getNewestValidItem(key T) (*V, bool) {
+	var newest item[V]
+	found := false
+
+	if items, ok := m.m[key]; ok {
+		for _, currentItem := range items {
+			if currentItem.expiresAt.After(time.Now()) && (!found || currentItem.expiresAt.After(newest.expiresAt)) {
+				newest = currentItem
+				found = true
+			}
+		}
+	}
+
+	if found {
+		return &newest.value, true
+	}
+	return nil, false
+}
+
+func (m *ExpireMap[T, V]) deleteNewestValidItem(key T) {
+	items := m.m[key]
+	newestIndex := -1
+	var newestExpiration time.Time
+
+	for i, currentItem := range items {
+		if currentItem.expiresAt.After(time.Now()) && (newestIndex == -1 || currentItem.expiresAt.After(newestExpiration)) {
+			newestIndex = i
+			newestExpiration = currentItem.expiresAt
+		}
+	}
+
+	if newestIndex != -1 {
+		m.m[key] = append(items[:newestIndex], items[newestIndex+1:]...)
 	}
 }
