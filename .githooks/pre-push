@@ -5,11 +5,22 @@ echo "Running Go tests..."
 # Run Go tests
 go test ./...
 
+# Generate coverage report
+go test -v -coverprofile coverage.out ./...
+
 # If the tests fail, exit with a non-zero status
 if [ $? -ne 0 ]; then
   echo "Tests failed! Aborting push."
   exit 1
 fi
 
-echo "All tests passed. Proceeding with push."
-exit 0
+# Check coverage
+COVERAGE=$(go tool cover -func coverage.out | grep total: | awk '{ print $3 }' | sed 's/%//')
+if (( $(echo "$COVERAGE < 90" |bc -l) )); then
+  echo "Total coverage is less than 90%. Aborting push."
+  exit 1
+fi
+
+echo "All tests passed with coverage over 90%. Proceeding with push."
+
+go tool cover -html coverage.out -o coverage.html

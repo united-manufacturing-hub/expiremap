@@ -126,3 +126,49 @@ func TestConcurrency(t *testing.T) {
 		}
 	}
 }
+
+func TestLoadAndDeleteNoKey(t *testing.T) {
+	m := New[int, string]()
+	_, ok := m.LoadAndDelete(1)
+	if ok {
+		t.Fatal("Expected ok to be false")
+	}
+}
+
+func TestLoadAndDeleteExpiredKey(t *testing.T) {
+	m := NewEx[int, string](time.Minute, time.Millisecond)
+	m.Set(1, "one")
+	time.Sleep(time.Millisecond * 2)
+	_, ok := m.LoadAndDelete(1)
+	if ok {
+		t.Fatal("Expected ok to be false")
+	}
+}
+
+func TestLoadNoKey(t *testing.T) {
+	m := New[int, string]()
+	_, ok := m.Load(1)
+	if ok {
+		t.Fatal("Expected ok to be false")
+	}
+}
+
+func TestLoadExpiredKey(t *testing.T) {
+	m := NewEx[int, string](time.Minute, time.Millisecond)
+	m.Set(1, "one")
+	time.Sleep(time.Millisecond * 2)
+	_, ok := m.Load(1)
+	if ok {
+		t.Fatal("Expected ok to be false")
+	}
+}
+
+func TestNoCull(t *testing.T) {
+	m := NewEx[int, string](time.Millisecond, time.Hour)
+	m.Set(1, "one")
+	time.Sleep(time.Millisecond * 2)
+	_, ok := m.Get(1)
+	if !ok {
+		t.Fatal("Expected ok to be true")
+	}
+}
