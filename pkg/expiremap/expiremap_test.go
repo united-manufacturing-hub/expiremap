@@ -17,7 +17,7 @@ func TestSetAndGet(t *testing.T) {
 	m := New[int, string]()
 	m.Set(1, "one")
 
-	v, ok := m.Get(1)
+	v, ok := m.Load(1)
 	if !ok || *v != "one" {
 		t.Fatalf("expected %v, got %v", "one", v)
 	}
@@ -27,14 +27,14 @@ func TestSetExAndGet(t *testing.T) {
 	m := New[int, string]()
 	m.SetEx(1, "one", time.Second*2)
 
-	v, ok := m.Get(1)
+	v, ok := m.Load(1)
 	if !ok || *v != "one" {
 		t.Fatalf("expected %v, got %v", "one", v)
 	}
 
 	time.Sleep(time.Second * 3)
 
-	_, ok = m.Get(1)
+	_, ok = m.Load(1)
 	if ok {
 		t.Fatal("Expected value to be expired")
 	}
@@ -49,7 +49,7 @@ func TestLoadAndDelete(t *testing.T) {
 		t.Fatalf("expected %v, got %v", "one", v)
 	}
 
-	_, ok = m.Get(1)
+	_, ok = m.Load(1)
 	if ok {
 		t.Fatal("Expected key to be deleted")
 	}
@@ -70,7 +70,7 @@ func TestDelete(t *testing.T) {
 	m.Set(1, "one")
 	m.Delete(1)
 
-	_, ok := m.Get(1)
+	_, ok := m.Load(1)
 	if ok {
 		t.Fatal("Expected key to be deleted")
 	}
@@ -84,7 +84,7 @@ func TestCull(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	_, ok := m.Get(1)
+	_, ok := m.Load(1)
 	if ok {
 		t.Fatal("Expected value to be expired")
 	}
@@ -108,7 +108,7 @@ func TestConcurrency(t *testing.T) {
 	for i := 0; i < numRoutines; i++ {
 		go func(i int) {
 			time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
-			m.Get(i)
+			m.Load(i)
 			done <- true
 		}(i)
 	}
@@ -120,7 +120,7 @@ func TestConcurrency(t *testing.T) {
 
 	// Check the final state of the map
 	for i := 0; i < numRoutines; i++ {
-		value, ok := m.Get(i)
+		value, ok := m.Load(i)
 		if !ok || *value != "value" {
 			t.Fatalf("Expected key %v to be 'value', got %v", i, value)
 		}
@@ -167,7 +167,7 @@ func TestNoCull(t *testing.T) {
 	m := NewEx[int, string](time.Millisecond, time.Hour)
 	m.Set(1, "one")
 	time.Sleep(time.Millisecond * 2)
-	_, ok := m.Get(1)
+	_, ok := m.Load(1)
 	if !ok {
 		t.Fatal("Expected ok to be true")
 	}
