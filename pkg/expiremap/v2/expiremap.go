@@ -1,4 +1,4 @@
-package expiremap
+package v2
 
 import (
 	"sync"
