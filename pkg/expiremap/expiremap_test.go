@@ -189,3 +189,20 @@ func TestLoadOrStore2(t *testing.T) {
 		t.Fatalf("expected %v, got %v", "one", v)
 	}
 }
+
+func TestRange(t *testing.T) {
+	m := New[int, string]()
+	m.Set(1, "one")
+	m.Set(2, "two")
+	m.Set(3, "three")
+
+	count := 0
+	m.Range(func(key int, value string) bool {
+		count++
+		return true
+	})
+
+	if count != 3 {
+		t.Fatalf("expected %v, got %v", 3, count)
+	}
+}

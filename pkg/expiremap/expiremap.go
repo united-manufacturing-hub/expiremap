@@ -148,3 +148,16 @@ func (m *ExpireMap[T, V]) deleteNewestValidItem(key T) {
 		m.m[key] = append(items[:newestIndex], items[newestIndex+1:]...)
 	}
 }
+
+func (m *ExpireMap[T, V]) Range(f func(key T, value V) bool) {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	for k, v := range m.m {
+		for _, i := range v {
+			if !f(k, i.value) {
+				return
+			}
+		}
+	}
+}
