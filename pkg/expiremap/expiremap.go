@@ -43,6 +43,22 @@ func (m *ExpireMap[T, V]) SetEx(key T, value V, ttl time.Duration) {
 	m.m[key] = append(m.m[key], item[V]{value: value, expiresAt: time.Now().Add(ttl)})
 }
 
+func (m *ExpireMap[T, V]) LoadOrStore(key T, value V) (*V, bool) {
+	return m.LoadOrStoreEx(key, value, m.defaultTTL)
+}
+
+func (m *ExpireMap[T, V]) LoadOrStoreEx(key T, value V, ttl time.Duration) (*V, bool) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	v, ok := m.getNewestValidItem(key)
+	if ok {
+		return v, ok
+	}
+	m.m[key] = append(m.m[key], item[V]{value: value, expiresAt: time.Now().Add(ttl)})
+	return &value, false
+}
+
 func (m *ExpireMap[T, V]) Get(key T) (*V, bool) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()

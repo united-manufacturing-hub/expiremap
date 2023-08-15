@@ -172,3 +172,20 @@ func TestNoCull(t *testing.T) {
 		t.Fatal("Expected ok to be true")
 	}
 }
+
+func TestLoadOrStore(t *testing.T) {
+	m := New[int, string]()
+	m.Set(1, "one")
+	v, ok := m.LoadOrStore(1, "two")
+	if !ok || *v != "one" {
+		t.Fatalf("expected %v, got %v", "one", v)
+	}
+}
+
+func TestLoadOrStore2(t *testing.T) {
+	m := New[int, string]()
+	v, ok := m.LoadOrStore(1, "one")
+	if ok || *v != "one" {
+		t.Fatalf("expected %v, got %v", "one", v)
+	}
+}
