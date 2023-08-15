@@ -66,18 +66,6 @@ func (m *ExpireMap[T, V]) LoadOrStoreEx(key T, value V, ttl time.Duration) (*V, 
 	return &value, false
 }
 
-// Get retrieves the newest valid item from the map by key.
-// Deprecated: use Load instead.
-func (m *ExpireMap[T, V]) Get(key T) (*V, bool) {
-	m.lock.RLock()
-	defer m.lock.RUnlock()
-
-	if v, ok := m.m[key]; ok && v.expiresAt.After(time.Now()) {
-		return &v.value, true
-	}
-	return nil, false
-}
-
 // LoadAndDelete retrieves the newest valid item from the map by key and then deletes it.
 func (m *ExpireMap[T, V]) LoadAndDelete(key T) (*V, bool) {
 	m.lock.Lock()
