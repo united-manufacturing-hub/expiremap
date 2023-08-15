@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/united-manufacturing-hub/expiremap/pkg/expiremap/expiremap.go (97.7%)</option>
+				<option value="file0">github.com/united-manufacturing-hub/expiremap/pkg/expiremap/expiremap.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -191,7 +191,7 @@ func (m *ExpireMap[T, V]) Range(f func(key T, value V) bool) <span class="cov8" 
         defer m.lock.RUnlock()
 
         for k, v := range m.m </span><span class="cov8" title="1">{
-                if !f(k, v.value) </span><span class="cov0" title="0">{
+                if !f(k, v.value) </span><span class="cov8" title="1">{
                         break</span>
                 }
         }

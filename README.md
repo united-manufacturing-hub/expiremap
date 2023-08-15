@@ -21,11 +21,13 @@ import (
 
 func main() {
 	var exMap = expiremap.New[string, string]()
-	exMap.Set("key", "value", 10*time.Second) // 10 seconds
-	val := exMap.Get("key")                   // "value"
+	exMap.Set("key", "value") // 10 seconds
+	val, ok := exMap.Load("key")                   // "value"
 	fmt.Println(val)
+	fmt.Println(ok)
 	time.Sleep(11 * time.Second)
-	val = exMap.Get("key") // nil
+	val, ok = exMap.Load("key") // nil
 	fmt.Println(val)
+	fmt.Println(ok)
 }
 ```
