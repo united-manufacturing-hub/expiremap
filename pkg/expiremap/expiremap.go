@@ -125,3 +125,10 @@ func (m *ExpireMap[T, V]) Range(f func(key T, value V) bool) {
 		}
 	}
 }
+
+// Length returns the number of items in the map.
+func (m *ExpireMap[T, V]) Length() int {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+	return len(m.m)
+}
